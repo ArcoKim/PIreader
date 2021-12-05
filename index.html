@@ -5,55 +5,79 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="icon" href="data:;base64,iVBORw0KGgo=">
-	<style>
-		html, body {
-			margin: 0;
-			height: 100%;
-			overflow: hidden;
-			background-color: black;
-		}
-		#one {
-			color: white;
-			font-size: 200px;
-			text-align: center;
-		}
-		#kakao {
-			width: 350px;
-			height: 100px;
-			position: absolute;
-			bottom: 0;
-		}
-	</style>
+	<link rel="stylesheet" href="style.css">
 	<script src="src/pi.js"></script>
-	<title>파일파이리더</title>
+	<title>PI Reader</title>
 </head>
 <body>
-	<button onclick="plays = true; audioPlay();">재생</button>
-	<button onclick="plays = false;">초기화</button>
-	<h1 id="one"></h1>
-	<img src="src/voice_logo.png" alt="카카오 API" id="kakao">
+	<div id="buttons">
+		<button onclick="command(2);" id="playBtn">재생</button>
+		<button onclick="command(1);" id="stopBtn">정지</button>
+		<button onclick="command(0);" id="resetBtn">초기화</button>
+	</div>
+	<div id="addDiv">
+		<span id="chkbox">추가여부</span>
+		<label class="switch">
+			<input type="checkbox" id="addChk">
+			<span class="slider round"></span>
+		</label>
+		<span id="chkbox">자동스크롤</span>
+		<label class="switch">
+			<input type="checkbox" id="scrollChk">
+			<span class="slider round"></span>
+		</label>
+	</div>
+	<a href="https://www.youtube.com/channel/UCQNE2JmbasNYbjGAcuBiRRg" id="helpDiv" target='_blank'>
+		<img src="./src/help.jpg" alt="제작 도움: 조코딩 유튜브 채널" id="help">
+	</a>
+	<h1 id="pi"></h1>
+	<p id="count"></p>
 	<script>
-		var audio;
-		var plays = true;
+		let audio;
+		let count = 0; 
+		let plays = 0;
+		function command(code) {
+			plays = code;
+			if (code == 2) {
+				audioPlay();
+				document.getElementById('playBtn').disabled = true;
+			} else {
+				if (!plays) {
+					document.getElementById('pi').innerHTML = '';
+					document.getElementById('count').innerHTML = '0번';
+					count = 0;
+				}
+				document.getElementById('playBtn').disabled = false;
+			}
+		}
 		function play(audio, value) {
+			count++;
 			audio.play();
-			document.getElementById('one').innerHTML = value;
+			if (document.getElementById('addChk').checked) {
+				document.getElementById('pi').innerHTML += value;
+			} else {
+				document.getElementById('pi').innerHTML = value;
+			}
+			document.getElementById('count').innerHTML = String(count) + '번';
+			if (document.getElementById('scrollChk').checked) {
+				if (count % 5 == 0) {
+					window.scrollTo(0,document.body.scrollHeight);
+				}
+			}
 			return new Promise(function(resolve, reject) {
 				audio.addEventListener('ended', resolve);
 			});
 		}
 		async function audioPlay() {
-			for (const value of pi) {
-				if(plays) {
-					if(value === '.') {
+			while(count < pi.length) {
+				if(plays == 2) {
+					if(pi[count] === '.') {
 						audio = new Audio('src/point.mp3');
-						await play(audio, '.');
 					} else {
-						audio = new Audio('src/' + value + '.mp3');
-						await play(audio, Number(value));
+						audio = new Audio('src/' + pi[count] + '.mp3');
 					}
+					await play(audio, pi[count]);
 				} else {
-					document.getElementById('one').innerHTML = '';
 					break;
 				}
 			}
